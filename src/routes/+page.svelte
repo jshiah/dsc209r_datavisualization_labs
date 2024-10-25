@@ -1,2 +1,9 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<svelte:head>
+    <title>Home Page</title>
+</svelte:head>
+
+<main>
+    <h1>Joyce Shiah</h1>
+    <p>MS DS student @ UCSD HDSI. Welcome to my Lab-1 Assignment.</p>
+    <img src="/freezercat.jpeg" alt="I saw a cat named Freezer at the cat shelter." width = "500" height = "700"/>
+</main>

@@ -1,0 +1,148 @@
+body {
+    max-width: 100ch;
+    margin-inline: auto;
+    font: 100%/1.5 system-ui;
+}
+
+
+nav ul {
+  display: contents; 
+}
+
+nav li {
+  display: contents; 
+}
+
+nav {
+  --border-color: oklch(50% 10% 200 / 40%); /* Define the semi-transparent border color */
+  display: flex; 
+  margin-bottom: 1em; 
+  border-bottom-color: var(--border-color);
+  /* border-bottom: 1px solid oklch(80% 3% 200);  */
+}
+
+nav a {
+  flex: 1; 
+  text-decoration: none; 
+  color: inherit; 
+  text-align: center; 
+  padding: 0.5em; 
+}
+
+nav a.current {
+  border-bottom: 0.4em solid oklch(80% 3% 200); 
+  padding-bottom: 0.1em; 
+}
+
+
+:root {
+  --color-accent: oklch(65% 50% 0); 
+}
+
+html {
+  accent-color: var(--color-accent); 
+  color-scheme: light dark;
+}
+
+nav a:hover {
+  border-bottom: 0.4em solid var(--color-accent); 
+  background-color: color-mix(in oklch, var(--color-accent), canvas 85%);
+  /* background-color: oklch(from var(--color-accent) 95% 5% h);  */
+}
+
+form {
+  display: grid; 
+  grid-template-columns: auto 1fr; 
+  gap: 1em; 
+}
+
+label {
+  display: block; 
+  margin-block: 0.5em;
+}
+
+input,
+textarea,
+button {
+  font: inherit; 
+  grid-column: 2; 
+}
+
+button {
+  grid-column: 1 / -1; 
+}
+
+/* Projects styles */
+.projects {
+  display: grid; /* Set the .projects as a grid container */
+  grid-template-columns: repeat(auto-fill, minmax(15em, 1fr)); /* Flexible columns */
+  gap: 1em; /* Add spacing between projects */
+}
+
+.projects article {
+  display: grid; /* Make each article a grid container */
+  grid-template-rows: subgrid; /* Use subgrid for row alignment */
+  grid-row: span 3; /* Each article spans 3 rows */
+}
+
+.projects h2 {
+  margin: 0; /* Remove excessive margin from headings */
+}
+
+h1 {
+  font-size: 4em; /* 4em is equivalent to 400%. The em unit is relative to the font size of the element's parent. If the parent element's font size is 1em (or 100%), then 4em would indeed be 400% of that size. */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.1; /* Set line-height for all headings */
+  text-wrap: balance; /* Prevent uneven lines */
+}
+
+
+
+/* New Additions for Step 5: Styling your CV */
+header {
+  text-align: center;
+  padding: 2em 0;
+  background-color: #333; /* Dark background */
+  color: rgb(255, 255, 255);
+}
+
+header h1 {
+  font-size: 3em; /* Prominent name */
+
+}
+
+header h2 {
+  font-size: 1.5em; /* Subtitle or tagline */
+  color: #000000; /* Subtle color */
+} 
+
+section {
+  margin: 2em auto; /* Space between sections */
+  padding: 1em;
+  max-width: 800px; /* Center content */
+  background-color: rgb(122, 223, 231); /* White background for content */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Light shadow */
+}
+
+section h3 {
+  font-size: 1.2em; 
+  margin-bottom: 0.5em;
+  color: rgb(0, 0, 0); 
+} 
+
+/* Step 4.3 */
+.color-scheme {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 80%;
+  font-family: inherit;
+}
+
+.color-scheme select {
+  font-family: inherit;
+}
+

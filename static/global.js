@@ -21,7 +21,8 @@ document.body.prepend(nav);
 
 for (let p of pages) {
     let a = document.createElement('a');
-    a.href = url;
+    // a.href = url;
+    a.href = p.url; // Change this line to use p.url
     a.textContent = p.title;
 
     a.classList.toggle(

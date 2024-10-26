@@ -4,7 +4,6 @@ body {
     font: 100%/1.5 system-ui;
 }
 
-
 nav ul {
   display: contents; 
 }
@@ -34,6 +33,11 @@ nav a.current {
   padding-bottom: 0.1em; 
 }
 
+nav a:hover {
+  border-bottom: 0.4em solid var(--color-accent); 
+  background-color: color-mix(in oklch, var(--color-accent), canvas 85%);
+  /* background-color: oklch(from var(--color-accent) 95% 5% h);  */
+}
 
 :root {
   --color-accent: oklch(65% 50% 0); 
@@ -44,11 +48,6 @@ html {
   color-scheme: light dark;
 }
 
-nav a:hover {
-  border-bottom: 0.4em solid var(--color-accent); 
-  background-color: color-mix(in oklch, var(--color-accent), canvas 85%);
-  /* background-color: oklch(from var(--color-accent) 95% 5% h);  */
-}
 
 form {
   display: grid; 
@@ -74,20 +73,21 @@ button {
 
 /* Projects styles */
 .projects {
-  display: grid; /* Set the .projects as a grid container */
-  grid-template-columns: repeat(auto-fill, minmax(15em, 1fr)); /* Flexible columns */
-  gap: 1em; /* Add spacing between projects */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15em, 1fr)); 
+  gap: 1em; 
 }
 
 .projects article {
-  display: grid; /* Make each article a grid container */
-  grid-template-rows: subgrid; /* Use subgrid for row alignment */
-  grid-row: span 3; /* Each article spans 3 rows */
+  display: grid; 
+  grid-template-rows: subgrid; 
+  grid-row: span 3;
 }
 
-.projects h2 {
-  margin: 0; /* Remove excessive margin from headings */
-}
+/* .projects h2,
+.projects h3 {
+  margin: 0; 
+}  */
 
 h1 {
   font-size: 4em; /* 4em is equivalent to 400%. The em unit is relative to the font size of the element's parent. If the parent element's font size is 1em (or 100%), then 4em would indeed be 400% of that size. */

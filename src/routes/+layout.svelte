@@ -1,7 +1,6 @@
 <script>
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
-    // import '../style.css'; // Import global CSS
 
     let pages = [
         { url: './', title: 'Home' },
@@ -11,37 +10,36 @@
         { url: 'https://github.com/jshiah', title: 'GitHub' } 
     ];
 
-    let initialScheme = "automatic";
+    // Initialize colorScheme with a default value
+    let colorScheme = 'automatic'; // Default value
+    let root = globalThis?.document?.documentElement; // Access the <html> element
 
     // Function to handle theme change
     function handleThemeChange(event) {
         const scheme = event.target.value;
-        document.documentElement.style.colorScheme = scheme === 'automatic' ? '' : scheme;
-
-        // Only access localStorage in the browser
+        colorScheme = scheme; // Update the variable
         if (typeof localStorage !== 'undefined') {
-            localStorage.colorScheme = scheme;
+            localStorage.colorScheme = scheme; // Save to localStorage
         }
     }
 
     // Set initial value based on localStorage or OS preference
     onMount(() => {
         if (typeof localStorage !== 'undefined' && "colorScheme" in localStorage) {
-            initialScheme = localStorage.colorScheme;
-            document.documentElement.style.colorScheme = initialScheme === 'automatic' ? '' : initialScheme;
+            colorScheme = localStorage.colorScheme;
         }
     });
+
+    // Reactive statement to set the color scheme
+    $: root?.style.setProperty('color-scheme', colorScheme);
 </script>
 
-<style> 
+<style>
     .color-scheme {
-        margin: 1em 0; /* Add some margin */
-    }
-
-    /* Additional styles for the theme switcher */
-    select {
-        padding: 0.5em;
-        font-size: 1em;
+        position: absolute;
+        top: 1em;
+        right: 1em;
+        margin: 1em 0;
     }
 </style>
 
@@ -55,48 +53,21 @@
 
 <label class="color-scheme">
     Theme:
-    <select id="color-scheme-selector" on:change={handleThemeChange} bind:value={initialScheme}>
+    <select bind:value={colorScheme} on:change={handleThemeChange}>
         <option value="automatic">Automatic</option>
         <option value="light">Light</option>
         <option value="dark">Dark</option>
     </select>
 </label>
 
+<p>
+    {#if colorScheme === 'automatic'}
+        light dark
+    {:else if colorScheme === 'light'}
+        light
+    {:else if colorScheme === 'dark'}
+        dark
+    {/if}
+</p>
+
 <slot />
-
-<!-- <style>
-    nav ul {
-        display: contents; 
-    }
-
-    nav li {
-        display: contents; 
-    }
-
-    nav {
-        --border-color: oklch(50% 10% 200 / 40%); /* Define the semi-transparent border color */
-        display: flex; 
-        margin-bottom: 1em; 
-        border-bottom-color: var(--border-color);
-        /* border-bottom: 1px solid oklch(80% 3% 200);  */
-    }
-
-    nav a {
-        flex: 1; 
-        text-decoration: none; 
-        color: inherit; 
-        text-align: center; 
-        padding: 0.5em; 
-    }
-
-    nav a.current {
-        border-bottom: 0.4em solid oklch(80% 3% 200); 
-        padding-bottom: 0.1em; 
-    }
-
-    nav a:hover {
-        border-bottom: 0.4em solid var(--color-accent); 
-        background-color: color-mix(in oklch, var(--color-accent), canvas 85%);
-        /* background-color: oklch(from var(--color-accent) 95% 5% h);  */
-    }
-</style> -->

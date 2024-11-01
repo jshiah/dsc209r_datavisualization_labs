@@ -38,6 +38,7 @@
                 <dd>{data.following}</dd>
                 <dt>Public Repos:</dt>
                 <dd>{data.public_repos}</dd>
+                <dt>Public Gists:</dt>
                 <dd>{data.public_gists}</dd>
                 <!-- <dt>Avatar:</dt> -->
                 <!-- <dd><img src={data.avatar_url} alt="Avatar" width="100" /></dd> -->

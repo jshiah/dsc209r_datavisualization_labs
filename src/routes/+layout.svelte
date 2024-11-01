@@ -1,4 +1,5 @@
 <script>
+    import { onMount } from 'svelte';
     import { page } from '$app/stores';
     // import '../style.css'; // Import global CSS
 
@@ -10,36 +11,39 @@
         { url: 'https://github.com/jshiah', title: 'GitHub' } 
     ];
 
-    // Lab 5's Step 1.1 Port theme switcher to Svelte
+    let initialScheme = "automatic";
+
+    // Function to handle theme change
     function handleThemeChange(event) {
         const scheme = event.target.value;
         document.documentElement.style.colorScheme = scheme === 'automatic' ? '' : scheme;
-        localStorage.colorScheme = scheme;
+
+        // Only access localStorage in the browser
+        if (typeof localStorage !== 'undefined') {
+            localStorage.colorScheme = scheme;
+        }
     }
 
     // Set initial value based on localStorage or OS preference
-    let initialScheme = "automatic";
-    if ("colorScheme" in localStorage) {
-        initialScheme = localStorage.colorScheme;
-        document.documentElement.style.colorScheme = initialScheme === 'automatic' ? '' : initialScheme;
-    }
-
+    onMount(() => {
+        if (typeof localStorage !== 'undefined' && "colorScheme" in localStorage) {
+            initialScheme = localStorage.colorScheme;
+            document.documentElement.style.colorScheme = initialScheme === 'automatic' ? '' : initialScheme;
+        }
+    });
 </script>
 
-<!-- Also Lab 5's Step 1.1: Add CSS <style> element  -->
 <style> 
     .color-scheme {
         margin: 1em 0; /* Add some margin */
     }
-    
+
     /* Additional styles for the theme switcher */
     select {
         padding: 0.5em;
         font-size: 1em;
     }
 </style>
-
-
 
 <nav>
     {#each pages as p}
@@ -49,6 +53,14 @@
     {/each}
 </nav>
 
+<label class="color-scheme">
+    Theme:
+    <select id="color-scheme-selector" on:change={handleThemeChange} bind:value={initialScheme}>
+        <option value="automatic">Automatic</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+    </select>
+</label>
 
 <slot />
 

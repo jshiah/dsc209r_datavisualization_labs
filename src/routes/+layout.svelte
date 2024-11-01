@@ -9,7 +9,35 @@
         { url: './resume', title: 'Resume' },
         { url: 'https://github.com/jshiah', title: 'GitHub' } 
     ];
+
+    // Lab 5's Step 1.1 Port theme switcher to Svelte
+    function handleThemeChange(event) {
+        const scheme = event.target.value;
+        document.documentElement.style.colorScheme = scheme === 'automatic' ? '' : scheme;
+        localStorage.colorScheme = scheme;
+    }
+
+    // Set initial value based on localStorage or OS preference
+    let initialScheme = "automatic";
+    if ("colorScheme" in localStorage) {
+        initialScheme = localStorage.colorScheme;
+        document.documentElement.style.colorScheme = initialScheme === 'automatic' ? '' : initialScheme;
+    }
+
 </script>
+
+<!-- Also Lab 5's Step 1.1: Add CSS <style> element  -->
+<style> 
+    .color-scheme {
+        margin: 1em 0; /* Add some margin */
+    }
+    
+    /* Additional styles for the theme switcher */
+    select {
+        padding: 0.5em;
+        font-size: 1em;
+    }
+</style>
 
 
 
@@ -24,8 +52,7 @@
 
 <slot />
 
-
-<style>
+<!-- <style>
     nav ul {
         display: contents; 
     }
@@ -60,4 +87,4 @@
         background-color: color-mix(in oklch, var(--color-accent), canvas 85%);
         /* background-color: oklch(from var(--color-accent) 95% 5% h);  */
     }
-</style>
+</style> -->

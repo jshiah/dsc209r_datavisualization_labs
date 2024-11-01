@@ -131,9 +131,9 @@ section h3 {
   font-size: 1.2em; 
   margin-bottom: 0.5em;
   color: rgb(0, 0, 0); 
-} 
+}
 
-/* Step 4.3 */
+/* Step 4.3 
 .color-scheme {
   position: absolute;
   top: 1rem;
@@ -141,8 +141,10 @@ section h3 {
   font-size: 80%;
   font-family: inherit;
 }
+*/
 
+/*
 .color-scheme select {
   font-family: inherit;
 }
-
+*/

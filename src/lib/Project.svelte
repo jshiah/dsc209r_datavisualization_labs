@@ -16,6 +16,7 @@
 
 <article>
     <svelte:element this={'h' + hLevel}>{data.title}</svelte:element>
+    <p>{data.year}
     <img src={data.image} alt="" />
     <p>{data.description}</p>
 </article>

@@ -6,16 +6,6 @@ function $$(selector, context = document) {
 
 const ARE_WE_HOME = document.documentElement.classList.contains('home');
 
-// // CHECK: is this right??
-// let pages = [
-//     { url: './', title: 'Home' },
-//     { url: './projects', title: 'Projects' },
-//     { url: './contact', title: 'Contact' },
-//     { url: './resume', title: 'Resume' },
-//     { url: 'https://github.com/jshiah', title: 'GitHub' } 
-// ];
-
-
 let nav = document.createElement('nav');
 document.body.prepend(nav);
 

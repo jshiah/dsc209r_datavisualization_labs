@@ -29,14 +29,18 @@
         {#await response.json()}
             <p>Decoding...</p>
         {:then data}
-            <div class="github-stats">
-                <p><strong>Username:</strong> {data.login}</p>
-                <p><strong>Followers:</strong> {data.followers}</p>
-                <p><strong>Following:</strong> {data.following}</p>
-                <p><strong>Public Repos:</strong> {data.public_repos}</p>
-                <p><strong>Public Gists:</strong> {data.public_gists}</p>
-                <!-- <img src={data.avatar_url} alt="Avatar" width="100" /> -->
-            </div>
+            <dl class="grid">
+                <dt>Username:</dt>
+                <dd>{data.login}</dd>
+                <dt>Followers:</dt>
+                <dd>{data.followers}</dd>
+                <dt>Following:</dt>
+                <dd>{data.following}</dd>
+                <dt>Public Repos:</dt>
+                <dd>{data.public_repos}</dd>
+                <!-- <dt>Avatar:</dt> -->
+                <!-- <dd><img src={data.avatar_url} alt="Avatar" width="100" /></dd> -->
+            </dl>
         {:catch error}
             <p class="error">Something went wrong while decoding the response: {error.message}</p>
         {/await}
@@ -49,7 +53,18 @@
     .error {
         color: red;
     }
-    .github-stats {
-        margin-top: 20px;
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: auto auto;
+        gap: 10px; /* Optional: Add some space between grid items */
+    }
+    dt {
+        grid-row: 1; /* Place all <dt> elements in the first row */
+        font-weight: bold; /* Optional: Make <dt> bold */
+    }
+    dd {
+        grid-row: 2; /* Place all <dd> elements in the second row */
+        margin: 0; /* Remove default margin */
     }
 </style>

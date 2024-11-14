@@ -1,6 +1,6 @@
 <script>
     import * as d3 from 'd3';
-    import { createEventDispatcher } from 'svelte'; // Import the event dispatcher
+    import { createEventDispatcher } from 'svelte';
 
     export let data = [];
 
@@ -18,16 +18,25 @@
     let colors = d3.scaleOrdinal(d3.schemeTableau10);
     
     let selectedIndex = null;
-    const dispatch = createEventDispatcher(); // Create the event dispatcher
+    let hoveredIndex = null; // New variable to track hovered wedge
+    const dispatch = createEventDispatcher();
 
     function handleClick(index) {
         selectedIndex = selectedIndex === index ? null : index; // Toggle selection
         if (selectedIndex !== null) {
-            const selectedYear = data[selectedIndex].label; // Get the year label from the data
-            dispatch('yearSelect', selectedYear); // Dispatch the event with the selected year
+            const selectedYear = data[selectedIndex].label;
+            dispatch('yearSelect', selectedYear);
         } else {
-            dispatch('yearSelect', null); // Dispatch null if deselected
+            dispatch('yearSelect', null);
         }
+    }
+
+    function handleMouseEnter(index) {
+        hoveredIndex = index; // Set hovered index
+    }
+
+    function handleMouseLeave() {
+        hoveredIndex = null; // Reset hovered index
     }
 </script>
 
@@ -36,8 +45,10 @@
         {#each arcs as arc, index}
           <path 
             d={arc} 
-            fill={selectedIndex === index ? d3.rgb(colors(index)).brighter() : colors(index)} 
+            fill={hoveredIndex === index ? colors(index) : d3.rgb(colors(index)).darker(0.5)} 
             on:click={() => handleClick(index)}
+            on:mouseenter={() => handleMouseEnter(index)} 
+            on:mouseleave={handleMouseLeave} 
           />
         {/each}
     </svg>

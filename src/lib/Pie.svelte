@@ -45,7 +45,8 @@
         {#each arcs as arc, index}
           <path 
             d={arc} 
-            fill={hoveredIndex === index ? colors(index) : d3.rgb(colors(index)).darker(0.5)} 
+            fill={selectedIndex === index ? colors(index) : (hoveredIndex === index ? colors(index) : d3.rgb(colors(index)).darker(0.5))} 
+            opacity={hoveredIndex !== null && hoveredIndex !== index && selectedIndex !== index ? 0.3 : 1} 
             on:click={() => handleClick(index)}
             on:mouseenter={() => handleMouseEnter(index)} 
             on:mouseleave={handleMouseLeave} 
@@ -101,7 +102,7 @@
     }
 
     path {
-        transition: fill 300ms;
+        transition: fill 300ms, opacity 300ms; /* Add transition for opacity */
     }
 
     .legend li.selected .swatch {

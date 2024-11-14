@@ -71,31 +71,37 @@ button {
   grid-column: 1 / -1; 
 }
 
-/* Projects styles */
+/* Projects Layout - Responsive Grid */
 .projects {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15em, 1fr)); 
-  gap: 1em; 
+  display: grid;  /* Make .projects a grid container */
+  grid-template-columns: repeat(auto-fill, minmax(15em, 1fr));  /* Flexible columns */
+  gap: 1em;  /* Space between each project card */
+  margin-top: 2em; /* Optional: Add space above the grid */
 }
 
+/* Each project card */
 .projects article {
-  display: grid; 
-  grid-template-rows: subgrid; 
-  grid-row: span 3;
+  display: grid;  /* Grid layout inside each project card */
+  grid-template-rows: subgrid;  /* Align content to parent grid's rows */
+  grid-row: span 3;  /* Each project card spans 3 rows */
+  /* padding: 1em;   */
 }
-
-/* .projects h2,
-.projects h3 {
-  margin: 0; 
-}  */
 
 h1 {
   font-size: 4em; /* 4em is equivalent to 400%. The em unit is relative to the font size of the element's parent. If the parent element's font size is 1em (or 100%), then 4em would indeed be 400% of that size. */
+  margin: 0; /* Ensure no extra margin around the heading */
 }
 
 h1, h2, h3, h4, h5, h6 {
   line-height: 1.1; /* Set line-height for all headings */
   text-wrap: balance; /* Prevent uneven lines */
+  margin:0;
+}
+
+.projects article svg {
+  width: 100%; /* Make the pie chart responsive */
+  max-width: 20em;
+  margin-top: 1em;
 }
 
 
@@ -133,18 +139,12 @@ section h3 {
   color: rgb(0, 0, 0); 
 }
 
-/* Step 4.3 
-.color-scheme {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  font-size: 80%;
-  font-family: inherit;
-}
-*/
+/* Lab 6 step 1's pie chart */
 
-/*
-.color-scheme select {
-  font-family: inherit;
+svg {
+  max-width: 20em;
+  margin-block: 2em;
+
+  /* Do not clip shapes outside the viewBox */
+  overflow: visible;
 }
-*/

@@ -59,7 +59,7 @@
         <option value="dark">Dark</option>
     </select>
 </label>
-
+<!-- 
 <p>
     {#if colorScheme === 'automatic'}
         light dark
@@ -68,6 +68,6 @@
     {:else if colorScheme === 'dark'}
         dark
     {/if}
-</p>
+</p> -->
 
 <slot />

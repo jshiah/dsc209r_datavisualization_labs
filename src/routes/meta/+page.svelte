@@ -96,44 +96,36 @@
             .style("pointer-events", "all")
             
             .on('mouseover', function (event, d) {
-                // Scale the circle up on hover
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .attr("r", 5 * 1.5);
+    // Scale the circle up on hover
+    d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("r", 5 * 1.5);
 
-                // Show tooltip with a delay of 500ms
-                const tooltip = d3.select("#tooltip");
-                tooltip.html(`
-                    <strong>Commit:</strong> <a href="${d.url}" target="_blank">${d.id}</a><br>
-                    <strong>Author:</strong> ${d.author}<br>
-                    <strong>Date:</strong> ${d.date}<br>
-                    <strong>Time:</strong> ${d.time}<br>
-                    <strong>Lines Committed:</strong> ${d.totalLines}
-                `)
-                .style("visibility", "visible")
-                .style("top", (event.pageY - 10) + "px")
-                .style("left", (event.pageX + 10) + "px");
+    // Show tooltip
+    const tooltip = d3.select("#tooltip");
+    tooltip.html(`
+        <strong>Commit:</strong> <a href="${d.url}" target="_blank">${d.id}</a><br>
+        <strong>Author:</strong> ${d.author}<br>
+        <strong>Date:</strong> ${d.date}<br>
+        <strong>Time:</strong> ${d.time}<br>
+        <strong>Lines Committed:</strong> ${d.totalLines}
+    `)
+    .style("visibility", "visible")
+    .style("top", (event.pageY - 10) + "px") // Position tooltip based on mouse position
+    .style("left", (event.pageX + 10) + "px");
 
-                // Clear any previous timeout and set a new one for hiding the tooltip after 500ms
-                clearTimeout(hoverTimeout);
-                hoverTimeout = setTimeout(() => {
-                    tooltip.style("visibility", "hidden");
-                }, 500);
-            })
-            .on('mouseout', function (event, d) {
-                // Reset circle size when mouse leaves
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .attr("r", 5);
+})
+.on('mouseout', function (event, d) {
+    // Reset circle size when mouse leaves
+    d3.select(this)
+        .transition()
+        .duration(200)
+        .attr("r", 5);
 
-                // Clear previous timeout (if any) before hiding the tooltip immediately
-                clearTimeout(hoverTimeout);
-
-                // Hide tooltip immediately
-                d3.select("#tooltip").style("visibility", "hidden");
-            });
+    // Hide tooltip immediately when mouse leaves the circle
+    d3.select("#tooltip").style("visibility", "hidden");
+});
 
         // Create X-axis
         xAxis = svg.append("g")
@@ -255,5 +247,7 @@
         border-radius: 5px;
         pointer-events: none;
         z-index: 10;
+        transition-duration: 500ms;
+        transition-property: opacity 0.5s, visibility 0.5s;
     }
 </style>

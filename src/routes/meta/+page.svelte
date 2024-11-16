@@ -77,7 +77,6 @@
         svg = d3.select("#scatterplot")
             .attr("width", width)
             .attr("height", height);
-            
 
         svg.append("g")
             .attr("class", "dots")
@@ -85,10 +84,26 @@
             .data(commits)
             .enter()
             .append("circle")
+            .attr("class", "circle")
             .attr("cx", (commit) => xScale(commit.datetime))
             .attr("cy", (commit) => yScale(commit.hourFrac))
-            .attr("r", 5)
-            .attr("fill", "steelblue");
+            .attr("r", 5)  // Initial radius
+            .attr("fill", "steelblue")
+            .style("pointer-events", "all")  // Ensure pointer events are enabled
+
+            // Add hover event for scaling effect
+            .on('mouseover', function (event, d) {
+                d3.select(this)  // Select the circle
+                    .transition()  // Apply a transition for smooth scaling
+                    .duration(200)  // Duration of 200ms for the transition
+                    .attr("r", 5 * 1.5);  // Scale radius by 1.5x
+            })
+            .on('mouseout', function (event, d) {
+                d3.select(this)  // Select the circle
+                    .transition()  // Apply a transition for smooth scaling
+                    .duration(200)  // Duration of 200ms for the transition
+                    .attr("r", 5);  // Reset radius back to the initial size
+            });
 
         // Create X-axis
         xAxis = svg.append("g")
@@ -96,7 +111,6 @@
             .attr("transform", `translate(0, ${usableArea.height})`) // Move the X-axis to the bottom
             .call(d3.axisBottom(xScale));
 
-            
         // Create Y-axis with formatted time labels
         yAxis = svg.append("g")
             .attr("class", "y-axis")
@@ -108,9 +122,8 @@
                 })
             );
 
-        // Draw scatterplot dots
-                // Create horizontal gridlines
-                svg.append("g")
+        // Create horizontal gridlines
+        svg.append("g")
             .attr("class", "gridlines")
             .selectAll("line")
             .data(yScale.ticks(10)) // Create ticks for the gridlines
@@ -205,5 +218,7 @@
     .gridlines line {
         stroke: black; /* Color of the gridlines */
         stroke-opacity: 0.2; /* Opacity of the gridlines */
-    }   
+        transform-origin: center;
+        transform-box: fill-box;
+    }
 </style>

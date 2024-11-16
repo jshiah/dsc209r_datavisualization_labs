@@ -28,7 +28,11 @@
     let xScale, yScale;
     let svg, xAxis, yAxis;
 
-    let hoverTimeout;  // Timeout variable to handle the delay
+    // Reactive variables for selected data
+    let hasSelection = false;
+    let selectedCommits = [];
+    let selectedLines = [];
+    let languageBreakdown = new Map();
 
     onMount(async () => {
         data = await d3.csv('loc.csv', (row) => ({
@@ -38,6 +42,7 @@
             length: Number(row.length),
             date: new Date(row.date + 'T00:00' + row.timezone),
             datetime: new Date(row.datetime),
+            language: row.language // Assuming there's a language column
         }));
 
         commits = d3
@@ -45,7 +50,7 @@
             .map(([commit, lines]) => {
                 let first = lines[0];
                 let { author, date, time, timezone, datetime } = first;
-                let ret = {
+                return {
                     id: commit,
                     url: 'https://github.com/vis-society/lab-7/commit/' + commit,
                     author,
@@ -55,8 +60,8 @@
                     datetime,
                     hourFrac: datetime.getHours() + datetime.getMinutes() / 60,
                     totalLines: lines.length,
+                    lines: lines // Store lines for language breakdown
                 };
-                return ret;
             });
 
         // Define scales
@@ -70,7 +75,6 @@
             .nice()
             .range([usableArea.top, usableArea.height]);
 
-        // Define radius scale using square root scale
         const minRadius = 2;
         const maxRadius = 30;
         const rScale = d3.scaleSqrt()
@@ -110,7 +114,7 @@
                     <strong>Author:</strong> ${d.author}<br>
                     <strong>Date:</strong> ${d.date}<br>
                     <strong>Time:</strong> ${d.time}<br>
-                    <strong>Lines Committed:</strong> ${d.totalLines}
+                    <strong>Lines Committed :</strong> ${d.totalLines}
                 `)
                 .style("visibility", "visible")
                 .style("top", (event.pageY - 10) + "px")
@@ -165,7 +169,7 @@
             .attr("class", "brush")
             .call(brush);
 
-            function brushed(event) {
+    function brushed(event) {
     if (event.selection) {
         const [[x0, y0], [x1, y1]] = event.selection;
 
@@ -180,25 +184,118 @@
             .attr("fill", "rgba(255, 192, 203, 0.3)") // Light pink color
             .attr("pointer-events", "none"); // Make it non-interactive
 
-        // Change color of selected dots
+        // Reset selected commits and language breakdown
+        selectedCommits = [];
+        languageBreakdown.clear();
+
+        // Loop through the circles and check if they are inside the brushed area
         svg.selectAll(".circle")
             .attr("fill", (d) => {
                 const cx = xScale(d.datetime);
                 const cy = yScale(d.hourFrac);
                 // Check if the circle is within the brushed area
                 if (cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1) {
-                    return "darkgreen"; // Change to desired color
+                    selectedCommits.push(d);
+                    d.lines.forEach(line => {
+                        const lang = line.language;
+                        if (languageBreakdown.has(lang)) {
+                            languageBreakdown.set(lang, languageBreakdown.get(lang) + 1);
+                        } else {
+                            languageBreakdown.set(lang, 1);
+                        }
+                    });
+                    return "darkgreen"; // Change to desired color for selected dots
                 }
                 return "steelblue"; // Default color
             });
 
-        // Raise dots and other elements after brush
-        d3.select("#scatterplot").selectAll('.dots, .overlay ~ *').raise();  // Use the correct selection for raising elements
+        // Update the display of selected information
+        updateSelectedInfo(true);
+    } else {
+        // Reset selection if no area is selected
+        hasSelection = false; // Reset selection
+        selectedCommits = []; // Clear selected commits
+        languageBreakdown.clear(); // Clear language breakdown
+        updateSelectedInfo(false); // Update display with "No commits selected"
     }
+}
+
+function updateSelectedInfo(isSelected) {
+    const numCommits = selectedCommits.length;
+    const totalLines = selectedLines.length; // Total lines from selected lines
+    const infoContainer = d3.select("#selected-info");
+
+    if (isSelected && numCommits > 0) {
+        // Show selected commit information if something is selected
+        infoContainer.html(`
+            <h3>Selected Information</h3>
+            <p>Number of Commits Selected: ${numCommits}</p>
+            <p>Lines of Svelte: ${languageBreakdown.get('Svelte') || 0}</p>
+            <p>Language Breakdown:</p>
+            <ul>
+                ${Array.from(languageBreakdown.entries())
+                    .map(([lang, count]) => {
+                        const percentage = totalLines > 0 ? ((count / totalLines) * 100).toFixed(1) : 0; // Check for division by zero
+                        return `<li>${lang}: ${count} lines (${percentage}%)</li>`;
+                    })
+                    .join('')}
+            </ul>
+        `);
+        
+        // Draw the pie chart
+        drawPieChart(languageBreakdown);
+    } else {
+        // Display message if no commits are selected
+        infoContainer.html(`
+            <h3>No commits selected</h3>
+        `);
+        
+        // Clear the pie chart
+        d3.select("#language-pie-chart").selectAll("*").remove();
+    }
+}
+
+function drawPieChart(data) {
+    const width = 400;
+    const height = 400;
+    const radius = Math.min(width, height) / 2;
+
+    // Clear any existing pie chart
+    d3.select("#language-pie-chart").selectAll("*").remove();
+
+    const svg = d3.select("#language-pie-chart")
+        .append("g")
+        .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+    const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    const pie = d3.pie()
+        .value(d => d.count);
+
+    const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius);
+
+    const pieData = Array.from(data.entries()).map(([lang, count]) => ({ lang, count }));
+
+    const arcs = svg.selectAll(".arc")
+        .data(pie(pieData))
+        .enter().append("g")
+        .attr("class", "arc");
+
+    arcs.append("path")
+        .attr("d", arc)
+        .style("fill", (d) => color(d.data.lang));
+
+    arcs.append("text")
+        .attr("transform", (d) => `translate(${arc.centroid(d)})`)
+        .attr("dy", ".35em")
+        .text((d) => d.data.lang);
 }
 
     });
 </script>
+
 
 <svelte:head>
     <title>Meta</title>
@@ -239,6 +336,10 @@
 <h2>Commits by Time of Day</h2>
 
 <svg id="scatterplot"></svg>
+
+<div id="selected-info" style="margin-top: 20px;"></div>
+<svg id="language-pie-chart" width="400" height="400"></svg>
+
 
 <style>
     header {
@@ -295,14 +396,12 @@
         pointer-events: none; /* Make it non-interactive */
     }
 
-
     /* Global styles for the brush elements */
     :global(.selection) {
         fill: rgba(255, 192, 203, 0.3); /* Color for the selected area */
         stroke: rgb(139, 0, 0); /* Border color for selection */
         stroke-width: 2px; /* Border width */
         stroke-dasharray: 4, 4; /* Dotted border pattern */
-
     }
 
     :global(.handle) {
@@ -310,4 +409,38 @@
         stroke: #fff; /* Handle border color */
         stroke-width: 2px; /* Handle border width */
     }
+
+
+    #selected-info {
+    display: flex;
+    justify-content: space-around; /* Distribute space evenly across the width */
+    flex-wrap: wrap; /* Allow the content to wrap if needed */
+    margin-top: 20px;
+}
+
+#selected-info h3 {
+    flex: 1;
+    font-size: 1.5em;
+    margin: 0;
+    text-align: center;
+}
+
+#selected-info p {
+    flex: 1;
+    text-align: center;
+    margin: 0;
+}
+
+#selected-info ul {
+    flex: 2;
+    text-align: left;
+    margin: 0;
+    padding-left: 20px;
+    list-style-type: none;
+}
+
+#selected-info li {
+    margin-bottom: 5px;
+}
+
 </style>

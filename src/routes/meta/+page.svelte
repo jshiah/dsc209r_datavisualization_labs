@@ -71,99 +71,98 @@
         .nice()
         .range([usableArea.top, usableArea.height]);
 
-    // Define radius scale
-    const minRadius = 2;
-    const maxRadius = 30;
-    const rScale = d3.scaleLinear()
-        .domain(d3.extent(commits, (d) => d.totalLines)) // Domain based on totalLines
-        .range([minRadius, maxRadius]) // Range for circle radius
-        .clamp(true); // Clamps the value to the defined range
+    // Define radius scale using square root scale
+const minRadius = 2;
+const maxRadius = 30;
+const rScale = d3.scaleSqrt() // Change to square root scale
+    .domain(d3.extent(commits, (d) => d.totalLines)) // Domain based on totalLines
+    .range([minRadius, maxRadius]) // Range for circle radius
+    .clamp(true); // Clamps the value to the defined range
 
-    // Create SVG container
-    svg = d3.select("#scatterplot")
-        .attr("width", width)
-        .attr("height", height);
 
-    svg.append("g")
-        .attr("class", "dots")
-        .selectAll("circle")
-        .data(commits)
-        .enter()
-        .append("circle")
-        .attr("class", "circle")
-        .attr("cx", (commit) => xScale(commit.datetime))
-        .attr("cy", (commit) => yScale(commit.hourFrac))
-        .attr("r", (commit) => rScale(commit.totalLines)) // Use rScale for radius
-        .attr("fill", "steelblue")
-        .attr("fill-opacity", 0.7) // Set initial opacity
-        .style("pointer-events", "all")
-        
-        .on('mouseover', function (event, d) {
-    console.log('Mouse over:', d); // Debugging line
+commits = d3.sort(commits, (d) => -d.totalLines);
 
-    // Scale the circle up on hover
-    d3.select(this)
-        .transition()
-        .duration(200)
-        .attr("r", rScale(d.totalLines) * 1.5); // Scale radius on hover
+// Create SVG container
+svg = d3.select("#scatterplot")
+    .attr("width", width)
+    .attr("height", height);
 
-    // Show tooltip
-    const tooltip = d3.select("#tooltip");
-    tooltip.html(`
-        <strong>Commit:</strong> <a href="${d.url}" target="_blank">${d.id}</a><br>
-        <strong>Author:</strong> ${d.author}<br>
-        <strong>Date:</strong> ${d.date}<br>
-        <strong>Time:</strong> ${d.time}<br>
-        <strong>Lines Committed:</strong> ${d.totalLines}
-    `)
-    .style("visibility", "visible")
-    .style("top", (event.pageY - 10) + "px") // Position tooltip based on mouse position
-    .style("left", (event.pageX + 10) + "px");
+svg.append("g")
+    .attr("class", "dots")
+    .selectAll("circle")
+    .data(commits)
+    .enter()
+    .append("circle")
+    .attr("class", "circle")
+    .attr("cx", (commit) => xScale(commit.datetime))
+    .attr("cy", (commit) => yScale(commit.hourFrac))
+    .attr("r", (commit) => rScale(commit.totalLines)) // Use rScale for radius
+    .attr("fill", "steelblue")
+    .attr("fill-opacity", 0.7) // Set initial opacity
+    .style("pointer-events", "all")
+    
+    .on('mouseover', function (event, d) {
+        // Scale the circle up on hover
+        d3.select(this)
+            .transition()
+            .duration(200)
+            .attr("r", rScale(d.totalLines) * 1.5); // Scale radius on hover
 
-})
-.on('mouseout', function (event, d) {
-    console.log('Mouse out:', d); // Debugging line
+        // Show tooltip
+        const tooltip = d3.select("#tooltip");
+        tooltip.html(`
+            <strong>Commit:</strong> <a href="${d.url}" target="_blank">${d.id}</a><br>
+            <strong>Author:</strong> ${d.author}<br>
+            <strong>Date:</strong> ${d.date}<br>
+            <strong>Time:</strong> ${d.time}<br>
+            <strong>Lines Committed:</strong> ${d.totalLines}
+        `)
+        .style("visibility", "visible")
+        .style("top", (event.pageY - 10) + "px") // Position tooltip based on mouse position
+        .style("left", (event.pageX + 10) + "px");
 
-    // Reset circle size when mouse leaves
-    d3.select(this)
-        .transition()
-        .duration(200)
-        .attr("r", rScale(d.totalLines)); // Reset to original radius
+    })
+    .on('mouseout', function (event, d) {
+        // Reset circle size when mouse leaves
+        d3.select(this)
+            .transition()
+            .duration(200)
+            .attr("r", rScale(d.totalLines)); // Reset to original radius
 
-    // Hide tooltip immediately when mouse leaves the circle
-    d3.select("#tooltip").style("visibility", "hidden");
-});
+        // Hide tooltip immediately when mouse leaves the circle
+        d3.select("#tooltip").style("visibility", "hidden");
+    });
 
-    // Create X-axis
-    xAxis = svg.append("g")
-        .attr("class", "x -axis")
-        .attr("transform", `translate(0, ${usableArea.height})`)
-        .call(d3.axisBottom(xScale));
+// Create X-axis
+xAxis = svg.append("g")
+    .attr("class", "x-axis")
+    .attr("transform", `translate(0, ${usableArea.height})`)
+    .call(d3.axisBottom(xScale));
 
-    // Create Y-axis
-    yAxis = svg.append("g")
-        .attr("class", "y-axis")
-        .attr("transform", `translate(${usableArea.left}, 0)`)
-        .call(d3.axisLeft(yScale)
-            .tickFormat((d) => {
-                return String(d % 24).padStart(2, '0') + ':00';
-            })
-        );
+// Create Y-axis
+yAxis = svg.append("g")
+    .attr("class", "y-axis")
+    .attr("transform", `translate(${usableArea.left}, 0)`)
+    .call(d3.axisLeft(yScale)
+        .tickFormat((d) => {
+            return String(d % 24).padStart(2, '0') + ':00';
+        })
+    );
 
-    // Create gridlines
-    svg.append("g")
-        .attr("class", "gridlines")
-        .selectAll("line")
-        .data(yScale.ticks(10))
-        .enter()
-        .append("line")
-        .attr("x1", usableArea.left)
-        .attr("x2", usableArea.right)
-        .attr("y1", (d) => yScale(d))
-        .attr("y2", (d) => yScale(d))
-        .attr("stroke", "black")
-        .attr("stroke-opacity", 0.2)
-        .attr("stroke-dasharray", "2,2");
+// Create gridlines
+svg.append("g")
+    .attr("class", "gridlines")
+    .selectAll("line")
+    .data(yScale.ticks(10))
+    .enter()
+    .append("line")
+    .attr("x1", usableArea.left)
+    .attr("x2", usableArea.right)
+    .attr("y1", (d) => yScale(d))
+    .attr("y2", (d) => yScale(d))
+    .attr("stroke", "black")
+    .attr("stroke-opacity", 0.2)
+    .attr("stroke-dasharray", "2,2");
 });
 </script>
 

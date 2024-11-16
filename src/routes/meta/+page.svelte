@@ -79,12 +79,24 @@
             .attr("height", height);
             
 
+        svg.append("g")
+            .attr("class", "dots")
+            .selectAll("circle")
+            .data(commits)
+            .enter()
+            .append("circle")
+            .attr("cx", (commit) => xScale(commit.datetime))
+            .attr("cy", (commit) => yScale(commit.hourFrac))
+            .attr("r", 5)
+            .attr("fill", "steelblue");
+
         // Create X-axis
         xAxis = svg.append("g")
             .attr("class", "x-axis")
-            .attr("transform", `translate(0,${usableArea.height})`) // Move the X-axis to the bottom
+            .attr("transform", `translate(0, ${usableArea.height})`) // Move the X-axis to the bottom
             .call(d3.axisBottom(xScale));
 
+            
         // Create Y-axis with formatted time labels
         yAxis = svg.append("g")
             .attr("class", "y-axis")
@@ -97,16 +109,20 @@
             );
 
         // Draw scatterplot dots
-        svg.append("g")
-            .attr("class", "dots")
-            .selectAll("circle")
-            .data(commits)
+                // Create horizontal gridlines
+                svg.append("g")
+            .attr("class", "gridlines")
+            .selectAll("line")
+            .data(yScale.ticks(10)) // Create ticks for the gridlines
             .enter()
-            .append("circle")
-            .attr("cx", (commit) => xScale(commit.datetime))
-            .attr("cy", (commit) => yScale(commit.hourFrac))
-            .attr("r", 5)
-            .attr("fill", "steelblue");
+            .append("line")
+            .attr("x1", usableArea.left) // Start from the left margin
+            .attr("x2", usableArea.right) // End at the right margin
+            .attr("y1", (d) => yScale(d)) // Y position based on the tick
+            .attr("y2", (d) => yScale(d)) // Y position based on the tick
+            .attr("stroke", "black") // Color of the gridlines
+            .attr("stroke-opacity", 0.2) // Set opacity
+            .attr("stroke-dasharray", "2,2"); // Optional: make them dashed
     });
 </script>
 
@@ -186,4 +202,8 @@
     svg {
         overflow: visible;
     }
+    .gridlines line {
+        stroke: black; /* Color of the gridlines */
+        stroke-opacity: 0.2; /* Opacity of the gridlines */
+    }   
 </style>

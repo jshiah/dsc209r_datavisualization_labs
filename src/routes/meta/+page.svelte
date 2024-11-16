@@ -31,76 +31,81 @@
     let hoverTimeout;  // Timeout variable to handle the delay
 
     onMount(async () => {
-        data = await d3.csv('loc.csv', (row) => ({
-            ...row,
-            line: Number(row.line),
-            depth: Number(row.depth),
-            length: Number(row.length),
-            date: new Date(row.date + 'T00:00' + row.timezone),
-            datetime: new Date(row.datetime),
-        }));
+    data = await d3.csv('loc.csv', (row) => ({
+        ...row,
+        line: Number(row.line),
+        depth: Number(row.depth),
+        length: Number(row.length),
+        date: new Date(row.date + 'T00:00' + row.timezone),
+        datetime: new Date(row.datetime),
+    }));
 
-        commits = d3
-            .groups(data, (d) => d.commit)
-            .map(([commit, lines]) => {
-                let first = lines[0];
-                let { author, date, time, timezone, datetime } = first;
-                let ret = {
-                    id: commit,
-                    url: 'https://github.com/vis-society/lab-7/commit/' + commit,
-                    author,
-                    date,
-                    time,
-                    timezone,
-                    datetime,
-                    hourFrac: datetime.getHours() + datetime.getMinutes() / 60,
-                    totalLines: lines.length,
-                };
+    commits = d3
+        .groups(data, (d) => d.commit)
+        .map(([commit, lines]) => {
+            let first = lines[0];
+            let { author, date, time, timezone, datetime } = first;
+            let ret = {
+                id: commit,
+                url: 'https://github.com/vis-society/lab-7/commit/' + commit,
+                author,
+                date,
+                time,
+                timezone,
+                datetime,
+                hourFrac: datetime.getHours() + datetime.getMinutes() / 60,
+                totalLines: lines.length,
+            };
 
-                // Additional statistics
-                numFiles = new Set(data.map(d => d.file)).size;
-                maxFileLength = Math.max(...data.map(d => d.line));
-                longestFile = data.reduce((max, current) => current.line > max.line ? current : max).file;
-                avgFileLength = data.reduce((sum, d) => sum + d.line, 0) / data.length;
+            return ret;
+        });
 
-                return ret;
-            });
+    // Define scales
+    xScale = d3.scaleTime()
+        .domain(d3.extent(commits, (d) => d.datetime))
+        .nice()
+        .range([usableArea.left, usableArea.right]);
 
-        // Define scales
-        xScale = d3.scaleTime()
-            .domain(d3.extent(commits, (d) => d.datetime))
-            .nice()
-            .range([usableArea.left, usableArea.right]);
+    yScale = d3.scaleLinear()
+        .domain([0, 24])
+        .nice()
+        .range([usableArea.top, usableArea.height]);
 
-        yScale = d3.scaleLinear()
-            .domain([0, 24])
-            .nice()
-            .range([usableArea.top, usableArea.height]);
+    // Define radius scale
+    const minRadius = 2;
+    const maxRadius = 30;
+    const rScale = d3.scaleLinear()
+        .domain(d3.extent(commits, (d) => d.totalLines)) // Domain based on totalLines
+        .range([minRadius, maxRadius]) // Range for circle radius
+        .clamp(true); // Clamps the value to the defined range
 
-        // Create SVG container
-        svg = d3.select("#scatterplot")
-            .attr("width", width)
-            .attr("height", height);
+    // Create SVG container
+    svg = d3.select("#scatterplot")
+        .attr("width", width)
+        .attr("height", height);
 
-        svg.append("g")
-            .attr("class", "dots")
-            .selectAll("circle")
-            .data(commits)
-            .enter()
-            .append("circle")
-            .attr("class", "circle")
-            .attr("cx", (commit) => xScale(commit.datetime))
-            .attr("cy", (commit) => yScale(commit.hourFrac))
-            .attr("r", 5)
-            .attr("fill", "steelblue")
-            .style("pointer-events", "all")
-            
-            .on('mouseover', function (event, d) {
+    svg.append("g")
+        .attr("class", "dots")
+        .selectAll("circle")
+        .data(commits)
+        .enter()
+        .append("circle")
+        .attr("class", "circle")
+        .attr("cx", (commit) => xScale(commit.datetime))
+        .attr("cy", (commit) => yScale(commit.hourFrac))
+        .attr("r", (commit) => rScale(commit.totalLines)) // Use rScale for radius
+        .attr("fill", "steelblue")
+        .attr("fill-opacity", 0.7) // Set initial opacity
+        .style("pointer-events", "all")
+        
+        .on('mouseover', function (event, d) {
+    console.log('Mouse over:', d); // Debugging line
+
     // Scale the circle up on hover
     d3.select(this)
         .transition()
         .duration(200)
-        .attr("r", 5 * 1.5);
+        .attr("r", rScale(d.totalLines) * 1.5); // Scale radius on hover
 
     // Show tooltip
     const tooltip = d3.select("#tooltip");
@@ -117,47 +122,49 @@
 
 })
 .on('mouseout', function (event, d) {
+    console.log('Mouse out:', d); // Debugging line
+
     // Reset circle size when mouse leaves
     d3.select(this)
         .transition()
         .duration(200)
-        .attr("r", 5);
+        .attr("r", rScale(d.totalLines)); // Reset to original radius
 
     // Hide tooltip immediately when mouse leaves the circle
     d3.select("#tooltip").style("visibility", "hidden");
 });
 
-        // Create X-axis
-        xAxis = svg.append("g")
-            .attr("class", "x-axis")
-            .attr("transform", `translate(0, ${usableArea.height})`)
-            .call(d3.axisBottom(xScale));
+    // Create X-axis
+    xAxis = svg.append("g")
+        .attr("class", "x -axis")
+        .attr("transform", `translate(0, ${usableArea.height})`)
+        .call(d3.axisBottom(xScale));
 
-        // Create Y-axis
-        yAxis = svg.append("g")
-            .attr("class", "y-axis")
-            .attr("transform", `translate(${usableArea.left}, 0)`)
-            .call(d3.axisLeft(yScale)
-                .tickFormat((d) => {
-                    return String(d % 24).padStart(2, '0') + ':00';
-                })
-            );
+    // Create Y-axis
+    yAxis = svg.append("g")
+        .attr("class", "y-axis")
+        .attr("transform", `translate(${usableArea.left}, 0)`)
+        .call(d3.axisLeft(yScale)
+            .tickFormat((d) => {
+                return String(d % 24).padStart(2, '0') + ':00';
+            })
+        );
 
-        // Create gridlines
-        svg.append("g")
-            .attr("class", "gridlines")
-            .selectAll("line")
-            .data(yScale.ticks(10))
-            .enter()
-            .append("line")
-            .attr("x1", usableArea.left)
-            .attr("x2", usableArea.right)
-            .attr("y1", (d) => yScale(d))
-            .attr("y2", (d) => yScale(d))
-            .attr("stroke", "black")
-            .attr("stroke-opacity", 0.2)
-            .attr("stroke-dasharray", "2,2");
-    });
+    // Create gridlines
+    svg.append("g")
+        .attr("class", "gridlines")
+        .selectAll("line")
+        .data(yScale.ticks(10))
+        .enter()
+        .append("line")
+        .attr("x1", usableArea.left)
+        .attr("x2", usableArea.right)
+        .attr("y1", (d) => yScale(d))
+        .attr("y2", (d) => yScale(d))
+        .attr("stroke", "black")
+        .attr("stroke-opacity", 0.2)
+        .attr("stroke-dasharray", "2,2");
+});
 </script>
 
 <svelte:head>
@@ -247,7 +254,7 @@
         border-radius: 5px;
         pointer-events: none;
         z-index: 10;
-        transition-duration: 500ms;
+        /* transition-duration: 500ms; */
         transition-property: opacity 0.5s, visibility 0.5s;
     }
 </style>

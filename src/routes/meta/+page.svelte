@@ -1,3 +1,5 @@
+<div id="tooltip" style="position: absolute; visibility: hidden; background: white; border: 1px solid black; padding: 5px; border-radius: 5px;"></div>
+
 <script>
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
@@ -12,7 +14,7 @@
     let width = 1000,  
         height = 600; 
 
-    let margin = { top: 20, right: 20, bottom: 40, left: 50 }; // Adjust margins to avoid clipping
+    let margin = { top: 20, right: 20, bottom: 40, left: 50 };
 
     let usableArea = {
         top: margin.top,
@@ -25,6 +27,8 @@
 
     let xScale, yScale;
     let svg, xAxis, yAxis;
+
+    let hoverTimeout;  // Timeout variable to handle the delay
 
     onMount(async () => {
         data = await d3.csv('loc.csv', (row) => ({
@@ -54,24 +58,24 @@
                 };
 
                 // Additional statistics
-                numFiles = new Set(data.map(d => d.file)).size; // Number of unique files
-                maxFileLength = Math.max(...data.map(d => d.line)); // Maximum file length
-                longestFile = data.reduce((max, current) => current.line > max.line ? current : max).file; // Longest file
-                avgFileLength = data.reduce((sum, d) => sum + d.line, 0) / data.length; // Average file length
+                numFiles = new Set(data.map(d => d.file)).size;
+                maxFileLength = Math.max(...data.map(d => d.line));
+                longestFile = data.reduce((max, current) => current.line > max.line ? current : max).file;
+                avgFileLength = data.reduce((sum, d) => sum + d.line, 0) / data.length;
 
                 return ret;
             });
 
-        // Define scales with margins applied
+        // Define scales
         xScale = d3.scaleTime()
-            .domain(d3.extent(commits, (d) => d.datetime)) // Time extent
+            .domain(d3.extent(commits, (d) => d.datetime))
             .nice()
-            .range([usableArea.left, usableArea.right]);  // Apply margins to xScale
+            .range([usableArea.left, usableArea.right]);
 
         yScale = d3.scaleLinear()
-            .domain([0, 24])  // Hour of the day: 0 to 24
+            .domain([0, 24])
             .nice()
-            .range([usableArea.top, usableArea.height]);  // Reversed range for descending Y-axis
+            .range([usableArea.top, usableArea.height]);
 
         // Create SVG container
         svg = d3.select("#scatterplot")
@@ -87,55 +91,80 @@
             .attr("class", "circle")
             .attr("cx", (commit) => xScale(commit.datetime))
             .attr("cy", (commit) => yScale(commit.hourFrac))
-            .attr("r", 5)  // Initial radius
+            .attr("r", 5)
             .attr("fill", "steelblue")
-            .style("pointer-events", "all")  // Ensure pointer events are enabled
-
-            // Add hover event for scaling effect
+            .style("pointer-events", "all")
+            
             .on('mouseover', function (event, d) {
-                d3.select(this)  // Select the circle
-                    .transition()  // Apply a transition for smooth scaling
-                    .duration(200)  // Duration of 200ms for the transition
-                    .attr("r", 5 * 1.5);  // Scale radius by 1.5x
+                // Scale the circle up on hover
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr("r", 5 * 1.5);
+
+                // Show tooltip with a delay of 500ms
+                const tooltip = d3.select("#tooltip");
+                tooltip.html(`
+                    <strong>Commit:</strong> <a href="${d.url}" target="_blank">${d.id}</a><br>
+                    <strong>Author:</strong> ${d.author}<br>
+                    <strong>Date:</strong> ${d.date}<br>
+                    <strong>Time:</strong> ${d.time}<br>
+                    <strong>Lines Committed:</strong> ${d.totalLines}
+                `)
+                .style("visibility", "visible")
+                .style("top", (event.pageY - 10) + "px")
+                .style("left", (event.pageX + 10) + "px");
+
+                // Clear any previous timeout and set a new one for hiding the tooltip after 500ms
+                clearTimeout(hoverTimeout);
+                hoverTimeout = setTimeout(() => {
+                    tooltip.style("visibility", "hidden");
+                }, 500);
             })
             .on('mouseout', function (event, d) {
-                d3.select(this)  // Select the circle
-                    .transition()  // Apply a transition for smooth scaling
-                    .duration(200)  // Duration of 200ms for the transition
-                    .attr("r", 5);  // Reset radius back to the initial size
+                // Reset circle size when mouse leaves
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr("r", 5);
+
+                // Clear previous timeout (if any) before hiding the tooltip immediately
+                clearTimeout(hoverTimeout);
+
+                // Hide tooltip immediately
+                d3.select("#tooltip").style("visibility", "hidden");
             });
 
         // Create X-axis
         xAxis = svg.append("g")
             .attr("class", "x-axis")
-            .attr("transform", `translate(0, ${usableArea.height})`) // Move the X-axis to the bottom
+            .attr("transform", `translate(0, ${usableArea.height})`)
             .call(d3.axisBottom(xScale));
 
-        // Create Y-axis with formatted time labels
+        // Create Y-axis
         yAxis = svg.append("g")
             .attr("class", "y-axis")
-            .attr("transform", `translate(${usableArea.left}, 0)`) // Move the Y-axis to the left
+            .attr("transform", `translate(${usableArea.left}, 0)`)
             .call(d3.axisLeft(yScale)
                 .tickFormat((d) => {
-                    // Format the Y-axis tick labels as HH:00, using d % 24 to handle fractional hours
                     return String(d % 24).padStart(2, '0') + ':00';
                 })
             );
 
-        // Create horizontal gridlines
+        // Create gridlines
         svg.append("g")
             .attr("class", "gridlines")
             .selectAll("line")
-            .data(yScale.ticks(10)) // Create ticks for the gridlines
+            .data(yScale.ticks(10))
             .enter()
             .append("line")
-            .attr("x1", usableArea.left) // Start from the left margin
-            .attr("x2", usableArea.right) // End at the right margin
-            .attr("y1", (d) => yScale(d)) // Y position based on the tick
-            .attr("y2", (d) => yScale(d)) // Y position based on the tick
-            .attr("stroke", "black") // Color of the gridlines
-            .attr("stroke-opacity", 0.2) // Set opacity
-            .attr("stroke-dasharray", "2,2"); // Optional: make them dashed
+            .attr("x1", usableArea.left)
+            .attr("x2", usableArea.right)
+            .attr("y1", (d) => yScale(d))
+            .attr("y2", (d) => yScale(d))
+            .attr("stroke", "black")
+            .attr("stroke-opacity", 0.2)
+            .attr("stroke-dasharray", "2,2");
     });
 </script>
 
@@ -148,28 +177,27 @@
     <p>This page includes stats about the code of this website.</p>
 </header>
 
-<!-- Display Statistics -->
 <section class="stats-container">
     <dl class="stats">
       <dt>Total <abbr title="Lines of code">LOC</abbr></dt>
       <dd>{data.length}</dd>
     </dl>
-  
+
     <dl class="stats">
       <dt>Number of Files</dt>
       <dd>{numFiles}</dd>
     </dl>
-  
+
     <dl class="stats">
       <dt>Maximum File Length</dt>
       <dd>{maxFileLength} lines</dd>
     </dl>
-  
+
     <dl class="stats">
       <dt>Longest File</dt>
       <dd>{longestFile}</dd>
     </dl>
-  
+
     <dl class="stats">
       <dt>Average File Length</dt>
       <dd>{avgFileLength.toFixed(2)} lines</dd>
@@ -178,26 +206,24 @@
 
 <h2>Commits by Time of Day</h2>
 
-<!-- SVG for scatterplot -->
 <svg id="scatterplot"></svg>
 
 <style>
-    /* Scoped CSS for Meta Page only */
     header {
-      background-color: transparent;
-      text-align: start;
-      color: rgb(0, 0, 0)
+        background-color: transparent;
+        text-align: start;
+        color: rgb(0, 0, 0)
     }
     h1 {
-      font-size: 4em;
-      margin: 0;
+        font-size: 4em;
+        margin: 0;
     }
     .stats-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive layout */
-      gap: 2em;
-      margin-top: 2em;
-      background-color: rgb(255, 238, 238);
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 2em;
+        margin-top: 2em;
+        background-color: rgb(255, 238, 238);
     }
     .stats {
         background-color: #f9f9f9;
@@ -216,9 +242,18 @@
         overflow: visible;
     }
     .gridlines line {
-        stroke: black; /* Color of the gridlines */
-        stroke-opacity: 0.2; /* Opacity of the gridlines */
-        transform-origin: center;
-        transform-box: fill-box;
+        stroke: black;
+        stroke-opacity: 0.2;
+    }
+
+    #tooltip {
+        position: absolute;
+        visibility: hidden;
+        background: white;
+        border: 1px solid black;
+        padding: 5px;
+        border-radius: 5px;
+        pointer-events: none;
+        z-index: 10;
     }
 </style>

@@ -1,5 +1,13 @@
 [
     {
+        "title": "DSC209R Lab 8: Geospatial Visualization ",
+        "year": "2024",
+        "image": "/my-portfolio/freezercat.jpeg", 
+        "description": "A dynamic visualization of Boston's bike traffic trends using D3.js, Svelte, and Mapbox GL. This project showcases geospatial data, interactive time filtering, and a custom legend for traffic flow representation.",
+        "url": "https://jshiah.github.io/dsc209r_lab8/"
+    },
+
+    {
         "title": "HELLO THIS IS A QUICK CHANGE Lorem ipsum dolor sit.",
         "year": "2024",
         "image": "https://vis-society.github.io/labs/2/images/empty.svg",

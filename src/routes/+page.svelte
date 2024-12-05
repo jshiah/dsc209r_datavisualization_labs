@@ -13,7 +13,7 @@
 <main>
     <h1>Joyce Shiah</h1>
     <p>Master's of Data Science student @ UC San Diego Halıcıoğlu Data Science Institute. Welcome to my website for the DSC209R Data Visualization course's labs.</p>
-    <img src="/my-portfolio/freezercat.jpeg" alt="I saw a cat named Freezer at the cat shelter." width="500" height="700"/>
+    <img src="/dsc209r_datavisualization_labs/freezercat.jpeg" alt="I saw a cat named Freezer at the cat shelter." width="500" height="700"/>
 
     <h2>Latest Projects</h2>
     <div class="projects highlights">
